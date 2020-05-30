@@ -4,9 +4,4 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Synergy.Logging\Synergy.Logging.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -1,5 +1,3 @@
-using Synergy.Logging;
-using Synergy.Logging.Interfaces;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -8,7 +6,6 @@ namespace Synergy.Extensions {
 	// Credits to this section goes to JustArchiNET -> ArchiSteamFarm
 	public static class OS {
 		public static bool IsUnix => RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-		private static readonly ILogger Logger = new Logger(typeof(OS).Name);
 
 		public static void Init(bool systemRequired) {
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
@@ -22,13 +19,12 @@ namespace Synergy.Extensions {
 
 		public static void UnixSetFileAccessExecutable(string path) {
 			if (string.IsNullOrEmpty(path) || !File.Exists(path)) {
-				Logger.Log(nameof(path));
 				return;
 			}
 
 			// Chmod() returns 0 on success, -1 on failure
 			if (NativeMethods.Chmod(path, (int) NativeMethods.UnixExecutePermission) != 0) {
-				Logger.Log($"Failed due to error: {Marshal.GetLastWin32Error()}");
+				return;
 			}
 		}
 
@@ -41,14 +37,13 @@ namespace Synergy.Extensions {
 			IntPtr consoleHandle = NativeMethods.GetStdHandle(NativeMethods.StandardInputHandle);
 
 			if (!NativeMethods.GetConsoleMode(consoleHandle, out uint consoleMode)) {
-				Logger.Log("Failed!");
 				return;
 			}
 
 			consoleMode &= ~NativeMethods.EnableQuickEditMode;
 
 			if (!NativeMethods.SetConsoleMode(consoleHandle, consoleMode)) {
-				Logger.Log("Failed!");
+				return;
 			}
 		}
 
@@ -60,7 +55,6 @@ namespace Synergy.Extensions {
 
 			// SetThreadExecutionState() returns NULL on failure, which is mapped to 0 (EExecutionState.Error) in our case
 			if (result == NativeMethods.EExecutionState.Error) {
-				Logger.Log($"Failed due to error: {result}");
 			}
 		}
 
