@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Synergy.Extensions;
 using Synergy.Logging;
 using Synergy.Logging.Interfaces;
 using Synergy.Requests.Models;
@@ -10,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synergy.Requests {
-	public class SynRequester : IDisposable {
+	public sealed class SynRequester : IDisposable {
 		private const int MAX_TRIES = 3;
 		private static readonly Random Random = new Random();
 		private static readonly SemaphoreSlim Sync = new SemaphoreSlim(1, 1);
@@ -33,7 +34,7 @@ namespace Synergy.Requests {
 			Client = new HttpClient(ClientHandler, false);
 		}
 
-		public async Task<string> InternelRequestGet(string requestUrl, Dictionary<string, string> data, int maxTries = MAX_TRIES) {
+		public async Task<string> InternelRequestGet(string requestUrl, Dictionary<string, string> data = null, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl)) {
 				return default;
 			}
@@ -42,13 +43,9 @@ namespace Synergy.Requests {
 			for (int i = 0; i < maxTries; i++) {
 				try {
 					using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl)) {
-						foreach (KeyValuePair<string, string> p in data) {
-							if (string.IsNullOrEmpty(p.Key) || string.IsNullOrEmpty(p.Value)) {
-								continue;
-							}
-
-							request.Headers.Add(p.Key, p.Value);
-						}
+						data.ForEachElement((s, v) => {
+							request.Headers.Add(s, v);
+						}, true);
 
 						using (HttpResponseMessage response = await ExecuteRequest(async () => await Client.SendAsync(request).ConfigureAwait(false)).ConfigureAwait(false)) {
 							if (!response.IsSuccessStatusCode) {
@@ -133,7 +130,7 @@ namespace Synergy.Requests {
 		}
 
 		public async Task<T> InternalRequestAsObject<T>(
-			HttpMethod method, string requestUrl, Dictionary<string, string> postData, int maxTries = MAX_TRIES) {
+			HttpMethod method, string requestUrl, Dictionary<string, string> data, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl)) {
 				return default;
 			}
@@ -142,13 +139,9 @@ namespace Synergy.Requests {
 			for (int i = 0; i < maxTries; i++) {
 				try {
 					using (HttpRequestMessage request = new HttpRequestMessage(method, requestUrl)) {
-						foreach (KeyValuePair<string, string> p in postData) {
-							if (string.IsNullOrEmpty(p.Key) || string.IsNullOrEmpty(p.Value)) {
-								continue;
-							}
-
-							request.Headers.Add(p.Key, p.Value);
-						}
+						data.ForEachElement((s, v) => {
+							request.Headers.Add(s, v);
+						}, true);
 
 						using (HttpResponseMessage response = await ExecuteRequest(async () => await Client.SendAsync(request).ConfigureAwait(false)).ConfigureAwait(false)) {
 							if (!response.IsSuccessStatusCode) {
@@ -197,13 +190,9 @@ namespace Synergy.Requests {
 			for (int i = 0; i < maxTries; i++) {
 				try {
 					using (HttpRequestMessage request = new HttpRequestMessage(method, requestUrl)) {
-						foreach (KeyValuePair<string, string> p in data) {
-							if (string.IsNullOrEmpty(p.Key) || string.IsNullOrEmpty(p.Value)) {
-								continue;
-							}
-
-							request.Headers.Add(p.Key, p.Value);
-						}
+						data.ForEachElement((s, v) => {
+							request.Headers.Add(s, v);
+						}, true);
 
 						request.Content = new StringContent(JsonConvert.SerializeObject(requestJsonContent));
 
@@ -254,13 +243,9 @@ namespace Synergy.Requests {
 			for (int i = 0; i < maxTries; i++) {
 				try {
 					using (HttpRequestMessage request = new HttpRequestMessage(method, requestUrl)) {
-						foreach (KeyValuePair<string, string> p in data) {
-							if (string.IsNullOrEmpty(p.Key) || string.IsNullOrEmpty(p.Value)) {
-								continue;
-							}
-
-							request.Headers.Add(p.Key, p.Value);
-						}
+						data.ForEachElement((s, v) => {
+							request.Headers.Add(s, v);
+						}, true);
 
 						request.Content = new StringContent(JsonConvert.SerializeObject(requestJsonContent));
 

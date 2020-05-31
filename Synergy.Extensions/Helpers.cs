@@ -14,7 +14,28 @@ using static Synergy.Extensions.Enums;
 
 namespace Synergy.Extensions {
 	public static class Helpers {
+		public static bool ForEachElement<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, Action<TKey, TValue> onElementAction, bool shouldNullCheck = true) {
+			if(dictionary == null || dictionary.Count <= 0 || onElementAction == null) {
+				return false;
+			}
 
+			try {
+				lock (dictionary) {
+					foreach (KeyValuePair<TKey, TValue> pair in dictionary) {
+						if(shouldNullCheck && (pair.Key == null || pair.Value == null)) {
+							continue;
+						}
+
+						onElementAction.Invoke(pair.Key, pair.Value);
+					}
+				}
+
+				return true;
+			}
+			catch(Exception) {
+				return false;
+			}
+		}
 
 		public static EOSType GetOSType() {
 			OperatingSystem osVer = Environment.OSVersion;
