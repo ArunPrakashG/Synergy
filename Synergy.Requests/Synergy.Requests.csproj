@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Synergy.Extensions\Synergy.Extensions.csproj" />
     <ProjectReference Include="..\Synergy.Logging\Synergy.Logging.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>Arun Prakash</Authors>
+    <Company>Arun Prakash</Company>
+    <Description>A package containing multiple helpers and extensions.</Description>
+    <PackageProjectUrl>https://github.com/ArunPrakashG/Synergy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ArunPrakashG/Synergy</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Synergy.Extensions\Synergy.Extensions.csproj" />
+    <ProjectReference Include="..\Synergy.Logging\Synergy.Logging.csproj" />
+    <ProjectReference Include="..\Synergy.Requests\Synergy.Requests.csproj" />
+  </ItemGroup>
+
+</Project>
