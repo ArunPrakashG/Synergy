@@ -11,18 +11,74 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Synergy.Requests {
+	/// <summary>
+	/// The main <see cref="SynRequester" /> class.
+	/// <para>Helpers to send requests and get their response, in multiple ways, with inbuilt request delays and retry mechanism</para>.
+	/// <para>Inherits <see cref="IDisposable" />, all methods can be warapped inside using() blocks</para>.
+	/// </summary>
 	public sealed class SynRequester : IDisposable {
+		/// <summary>
+		/// The maximum number of tries before the request is considered as a failure.
+		/// </summary>
 		private const int MAX_TRIES = 3;
+
+		/// <summary>
+		/// A static instance of <see cref="Random" /> ensures that there is least chance of any repeated values.
+		/// <para>This helpers in generating unique identifiers for our <see cref="SynRequester" /> Instances.</para>
+		/// </summary>
+		/// <returns></returns>
 		private static readonly Random Random = new Random();
+
+		/// <summary>
+		/// A static semaphore ensures that the requesting process is in sync accross all the instances of <see cref="SynRequster" />.
+		/// <para>By this way, it makes it easier to implement timeouts between multiple requests and such.</para>
+		/// </summary>
+		/// <returns></returns>
 		private static readonly SemaphoreSlim Sync = new SemaphoreSlim(1, 1);
+
+		/// <summary>
+		/// The generated unique identifier for this particuler <see cref="SynRequester" /> instance.
+		/// </summary>
 		private readonly string InstanceID;
+
+		/// <summary>
+		/// The <see cref="ILogger"/> instance of this <see cref="SynRequester"/> instance.
+		/// </summary>
 		private readonly ILogger Logger;
+
+		/// <summary>
+		/// The delay in seconds to wait before another request is executed.
+		/// </summary>
 		private readonly int DELAY_BETWEEN_REQUESTS = 5; // secs
-		private readonly int DELAY_BETWEEN_FAILED_REQUESTS = 10; // secs		
+
+		/// <summary>
+		/// The delay in seconds to wait before another request is executed after a failed request.
+		/// </summary>
+		private readonly int DELAY_BETWEEN_FAILED_REQUESTS = 10; // secs
+
+		/// <summary>
+		/// The underlying <see cref="HttpClientHandler"/> instance.
+		/// </summary>		
 		private readonly HttpClientHandler ClientHandler;
+
+		/// <summary>
+		/// The underlying <see cref="HttpClient"/> instance.
+		/// </summary>		
 		private readonly HttpClient Client;
+
+		/// <summary>
+		/// The underlying <see cref="CookieContainer"/> instance.
+		/// </summary>		
 		private readonly CookieContainer Cookies;
 
+        /// <summary>
+        /// The constructor of <see cref="SynRequester"/>.
+		/// <para>Initializes underlying <see cref="HttpClient"/> instances and others.</para>
+        /// </summary>
+        /// <param name="_httpClientHandler">The <see cref="HttpClientHandler"/> instance to use for the underlying <see cref="HttpClient"/> instance</param>.
+        /// <param name="_logger">The <see cref="ILogger"/> instance to use for Logging inside the current instance of <see cref="SynRequester"/></param>.
+        /// <param name="_delayBetweenRequests">Sets the delay between each request. (in seconds)</param>
+        /// <param name="_delayBetweenFailedRequests">Sets the delay between each failed request. (in seconds)</param>
 		public SynRequester(HttpClientHandler _httpClientHandler, ILogger _logger, int _delayBetweenRequests = 3, int _delayBetweenFailedRequests = 10) {
 			ClientHandler = _httpClientHandler ?? new HttpClientHandler();
 			InstanceID = (Random.Next(10 + _httpClientHandler.GetHashCode() + _httpClientHandler.CookieContainer.GetHashCode()) ^

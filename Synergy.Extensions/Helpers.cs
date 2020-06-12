@@ -10,19 +10,51 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Synergy.Extensions.Enums;
 
 namespace Synergy.Extensions {
+	/// <summary>
+	/// The static <see cref="Helpers"/> class.
+	/// </summary>
 	public static class Helpers {
+		/// <summary>
+		/// File seperators in Unix are different to what windows uses.
+		/// <para>We will set a global file seperator for all functions which will use the paths in this project to prevent any issues occuring while parsing it. </para>
+		/// </summary>
+		private static readonly string FileSeperator = @"\";
+
+		/// <summary>
+		/// A Global static Random ensures that there will be least chances of repeated results.
+		/// <para>Can be overrided on the using functions.</para>
+		/// </summary>
+		private static readonly Random Random;
+
+		/// <summary>
+		/// Assigns the <see cref="FileSeperator"/> value.
+		/// <para>Assigns a Random instance with a unique seed value to <see cref="Random"/> object.</para>
+		/// </summary>
+		static Helpers(){
+			FileSeperator = GetPlatform() == OSPlatform.Windows ? "//" : "\\";
+			Random = new Random(new Guid().ToString().GetHashCode());
+		}
+
+		/// <summary>
+		/// Execute an Action<TKey, TValue>() for each element inside a Dictionary<TKey, TValue>()
+		/// </summary>
+		/// <param name="dictionary">The dictionary to iterate on</param>
+		/// <param name="onElementAction">The action to execute for each element in <see cref="dictionary"/></param>
+		/// <param name="shouldNullCheck">Set as true if a null check should be done before executing the Action on the element.</param>
+		/// <typeparam name="TKey">The Key Type of the <see cref="dictionary"/></typeparam>
+		/// <typeparam name="TValue">The Valu Type of the <see cref="dictionary"/></typeparam>
+		/// <returns>True if all iteration when successfully.</returns>
 		public static bool ForEachElement<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, Action<TKey, TValue> onElementAction, bool shouldNullCheck = true) {
-			if(dictionary == null || dictionary.Count <= 0 || onElementAction == null) {
+			if (dictionary == null || dictionary.Count <= 0 || onElementAction == null) {
 				return false;
 			}
 
 			try {
 				lock (dictionary) {
 					foreach (KeyValuePair<TKey, TValue> pair in dictionary) {
-						if(shouldNullCheck && (pair.Key == null || pair.Value == null)) {
+						if (shouldNullCheck && (pair.Key == null || pair.Value == null)) {
 							continue;
 						}
 
@@ -32,112 +64,15 @@ namespace Synergy.Extensions {
 
 				return true;
 			}
-			catch(Exception) {
+			catch (Exception) {
 				return false;
 			}
 		}
 
-		public static EOSType GetOSType() {
-			OperatingSystem osVer = Environment.OSVersion;
-			Version ver = osVer.Version;
-
-			switch (osVer.Platform) {
-				case PlatformID.Win32Windows: {
-						return ver.Minor switch
-						{
-							0 => EOSType.Win95,
-							10 => EOSType.Win98,
-							90 => EOSType.WinME,
-							_ => EOSType.WinUnknown,
-						};
-					}
-
-				case PlatformID.Win32NT: {
-						switch (ver.Major) {
-							case 4:
-								return EOSType.WinNT;
-
-							case 5:
-								switch (ver.Minor) {
-									case 0:
-										return EOSType.Win2000;
-
-									case 1:
-										return EOSType.WinXP;
-
-									case 2:
-										// Assume nobody runs Windows XP Professional x64 Edition
-										// It's an edition of Windows Server 2003 anyway.
-										return EOSType.Win2003;
-								}
-
-								goto default;
-
-							case 6:
-								switch (ver.Minor) {
-									case 0:
-										return EOSType.WinVista; // Also Server 2008
-
-									case 1:
-										return EOSType.Windows7; // Also Server 2008 R2
-
-									case 2:
-										return EOSType.Windows8; // Also Server 2012
-
-									// Note: The OSVersion property reports the same version number (6.2.0.0) for both Windows 8 and Windows 8.1.- http://msdn.microsoft.com/en-us/library/system.environment.osversion(v=vs.110).aspx
-									// In practice, this will only get hit if the application targets Windows 8.1 in the app manifest.
-									// See http://msdn.microsoft.com/en-us/library/windows/desktop/dn481241(v=vs.85).aspx for more info.
-									case 3:
-										return EOSType.Windows81; // Also Server 2012 R2
-								}
-
-								goto default;
-
-							case 10:
-								return EOSType.Windows10;
-
-							default:
-								return EOSType.WinUnknown;
-						}
-					}
-
-				case PlatformID.Unix: {
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-							switch (ver.Major) {
-								case 11:
-									return EOSType.MacOS107; // "Lion"
-
-								case 12:
-									return EOSType.MacOS108; // "Mountain Lion"
-
-								case 13:
-									return EOSType.MacOS109; // "Mavericks"
-
-								case 14:
-									return EOSType.MacOS1010; // "Yosemite"
-
-								case 15:
-									return EOSType.MacOS1011; // El Capitan
-
-								case 16:
-									return EOSType.MacOS1012; // Sierra
-
-								default:
-									return EOSType.MacOSUnknown;
-							}
-						}
-						else {
-							return EOSType.LinuxUnknown;
-						}
-					}
-
-				default:
-					return EOSType.Unknown;
-			}
-		}
-
-		private static string FileSeperator { get; set; } = @"\";
-
+		/// <summary>
+		/// Waits for an array of tasks to finish execution. Blocks the calling thread until so.
+		/// </summary>
+		/// <param name="tasks">The task collection</param>
 		public static void WaitForCompletion(params Task[] tasks) {
 			if (tasks == null || tasks.Length <= 0) {
 				return;
@@ -146,6 +81,10 @@ namespace Synergy.Extensions {
 			Task.WaitAll(tasks);
 		}
 
+		/// <summary>
+		/// Gets all LAN networks
+		/// </summary>
+		/// <returns>Dictionary containing Host Name and IPAddress of the networks.</returns>
 		public static Dictionary<string, IPAddress> GetAllLocalNetworks() {
 			Dictionary<string, IPAddress> address = new Dictionary<string, IPAddress>();
 			foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces()) {
@@ -162,7 +101,12 @@ namespace Synergy.Extensions {
 			return address;
 		}
 
-		public static IPAddress GetNetworkByHostName(string hostName) {
+		/// <summary>
+		/// Tries to get a LAN network by its Host Name
+		/// </summary>
+		/// <param name="hostName">The name to search for.</param>
+		/// <returns>The IPAddress of the resultant LAN network. null if no networks found/search failed.</returns>
+		public static IPAddress? GetNetworkByHostName(string hostName) {
 			if (string.IsNullOrEmpty(hostName)) {
 				return default;
 			}
@@ -182,36 +126,35 @@ namespace Synergy.Extensions {
 		}
 
 		/// <summary>
-		/// Blocks the calling thread until the referred boolean value is set to true.
+		/// Blocks the calling thread until the referred boolean condition returns true.
 		/// </summary>
-		/// <param name="_value">Referred boolean value</param>
+		/// <param name="condition">The state checking condition</param>
+		/// <param name="interval">The interval between each blocking loop</param>
 		public static void WaitWhile(Func<bool> condition, int interval = 25) {
 			while (!condition()) {
 				Task.Delay(interval).Wait();
 			}
 		}
 
+		/// <summary>
+		/// Blocks the calling thread until the referred CancellationToken is cancelled.
+		/// </summary>
+		/// <param name="_token">The Cancellation Token</param>
+		/// <param name="interval">The interval between each blocking loop</param>
+		/// <returns></returns>
 		public static async Task WaitUntilCancellation(CancellationToken _token, int interval = 25) {
 			while (!_token.IsCancellationRequested) {
 				await Task.Delay(interval).ConfigureAwait(false);
 			}
 		}
 
-		public static void SetFileSeperator() {
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-				FileSeperator = "//";
-			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-				FileSeperator = "\\";
-			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-				FileSeperator = "//";
-			}
-		}
-
-		public static bool AsBool(this string value, out bool? booleanValue) {
+		/// <summary>
+		/// Tries to parse the given string value as boolean.
+		/// </summary>
+		/// <param name="value">The string to parse</param>
+		/// <param name="booleanValue">Boolean value if parsing succeded, else null.</param>
+		/// <returns>If the parsing is success or not.</returns>
+		public static bool TryParseAsBool(this string value, out bool? booleanValue) {
 			if (string.IsNullOrEmpty(value)) {
 				booleanValue = null;
 				return false;
@@ -250,6 +193,10 @@ namespace Synergy.Extensions {
 			}
 		}
 
+		/// <summary>
+		/// Get the current OS platform
+		/// </summary>
+		/// <returns>The OSPlatform</returns>
 		public static OSPlatform GetPlatform() {
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
 				return OSPlatform.Windows;
@@ -266,20 +213,37 @@ namespace Synergy.Extensions {
 			return OSPlatform.Linux;
 		}
 
-		public static float GenerateUniqueIdentifier(Random prng) {
-			int sign = prng.Next(2);
-			int exponent = prng.Next((1 << 8) - 1);
-			int mantissa = prng.Next(1 << 23);
+		/// <summary>
+		/// Generate a random, unique float value
+		/// </summary>
+		/// <param name="rand">The Random instance if the generation should use the specified instance. If not supplied, it will use default one.</param>
+		/// <returns>The float value.</returns>
+		public static float GenerateUniqueIdentifier(Random? rand = null) {
+			rand = rand ?? Random;
+			int sign = rand.Next(2);
+			int exponent = rand.Next((1 << 8) - 1);
+			int mantissa = rand.Next(1 << 23);
 			int bits = (sign << 31) + (exponent << 23) + mantissa;
-			return IntBitsToFloat(bits);
+			return BitsToFloat(bits);
 		}
 
-		private static float IntBitsToFloat(int bits) {
+		/// <summary>
+		/// Converts integer bits to float
+		/// </summary>
+		/// <param name="bits">the bits.</param>
+		/// <returns>the resultant float value.</returns>
+		private static float BitsToFloat(this int bits) {
 			unsafe {
 				return *(float*) &bits;
 			}
 		}
 
+		/// <summary>
+		/// Schedules an Action() to be executed after a specific delay.
+		/// </summary>
+		/// <param name="action">The action.</param>
+		/// <param name="delay">The delay until execution</param>
+		/// <returns>The underlying Timer instance used for current schedule.</returns>
 		public static Timer? ScheduleTask(Action action, TimeSpan delay) {
 			if (action == null) {
 				return null;
@@ -288,69 +252,67 @@ namespace Synergy.Extensions {
 			Timer? TaskSchedulerTimer = null;
 
 			TaskSchedulerTimer = new Timer(e => {
-				InBackgroundThread(action, "Task Scheduler");
-
-				if (TaskSchedulerTimer != null) {
-					TaskSchedulerTimer.Dispose();
-					TaskSchedulerTimer = null;
-				}
+				InBackgroundThread(action, $"Task Scheduler_{action.GetHashCode()}");
+				TaskSchedulerTimer?.Dispose();
 			}, null, delay, delay);
 
 			return TaskSchedulerTimer;
 		}
 
+		/// <summary>
+		/// Checks if the specified Socket is connected.
+		/// </summary>
+		/// <param name="s">The socket</param>
+		/// <returns>The status.</returns>
 		public static bool IsSocketConnected(Socket? s) {
 			if (s == null) {
 				return false;
 			}
 
-			bool part1 = s.Poll(1000, SelectMode.SelectRead);
-			bool part2 = s.Available == 0;
-			if (part1 && part2) {
+			return (s.Poll(1000, SelectMode.SelectRead) && (s.Available == 0));
+		}
+
+		/// <summary>
+		/// Pings the specified IP address to see if the corresponding server is online.
+		/// </summary>
+		/// <param name="ip">The IPAddress of the destination server.</param>
+		/// <returns></returns>
+		public static bool IsServerOnline(IPAddress _ip) {
+			if (_ip == null) {
 				return false;
 			}
 
-			return true;
+			const int timeout = 10000;
+			using (Ping ping = new Ping()){
+				PingReply _reply = ping.Send(_ip, timeout);
+				return _reply.Status == IPStatus.Success;
+			}
 		}
 
-		public static bool IsServerOnline(string? ip) {
-			if (string.IsNullOrEmpty(ip)) {
+		/// <summary>
+		/// Pings the specified IP address to see if the corresponding server is online in async.
+		/// </summary>
+		/// <param name="_ip">The IPAddress of the destination server.</param>
+		/// <returns></returns>
+		public static async Task<bool> IsServerOnlineAsync(IPAddress _ip){
+			if(_ip == null){
 				return false;
 			}
 
-			Ping ping = new Ping();
-			PingReply pingReply = ping.Send(ip);
-
-			return pingReply.Status == IPStatus.Success;
-		}
-
-		public static string ExecuteBashCommand(string command) {
-			// according to: https://stackoverflow.com/a/15262019/637142
-			// thanks to this we will pass everything as one command
-			command = command.Replace("\"", "\"\"");
-
-			var proc = new Process {
-				StartInfo = new ProcessStartInfo {
-					FileName = "/bin/bash",
-					Arguments = "-c \"" + command + "\"",
-					UseShellExecute = false,
-					RedirectStandardOutput = true,
-					CreateNoWindow = true
-				}
-			};
-
-			proc.Start();
-			proc.WaitForExit();
-
-			return proc.StandardOutput.ReadToEnd();
-		}
-
-		public static string? ExecuteBash(this string cmd, bool sudo) {
-			if (GetPlatform() != OSPlatform.Linux) {
-				return null;
+			const int timeout = 10000;
+			using (Ping ping = new Ping()){
+				PingReply _reply = await ping.SendPingAsync(_ip, timeout).ConfigureAwait(false);
+				return _reply.Status == IPStatus.Success;
 			}
+		}
 
-			if (string.IsNullOrEmpty(cmd)) {
+		/// <summary>
+		/// Executes the specified string command on the Bash Shell.
+		/// </summary>
+		/// <param name="cmd">The command string.</param>
+		/// <returns>The execution result.</returns>
+		public static string? ExecuteBash(this string cmd) {
+			if (GetPlatform() != OSPlatform.Linux || string.IsNullOrEmpty(cmd)) {
 				return null;
 			}
 
@@ -361,7 +323,7 @@ namespace Synergy.Extensions {
 			using Process process = new Process() {
 				StartInfo = new ProcessStartInfo {
 					FileName = "/bin/bash",
-					Arguments = sudo ? argsWithSudo : args,
+					Arguments = args,
 					RedirectStandardOutput = true,
 					RedirectStandardError = true,
 					UseShellExecute = false,
@@ -381,71 +343,130 @@ namespace Synergy.Extensions {
 			return result.ToString();
 		}
 
-		public static string? GetLocalIpAddress() {
+		/// <summary>
+		/// Gets the current pc's LAN address.
+		/// </summary>
+		/// <returns>The LAN IPAddress</returns>
+		public static IPAddress? GetLocalIpAddress() {
 			using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0)) {
 				socket.Connect("8.8.8.8", 65530);
 				IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
-				if (endPoint != null) {
-					return endPoint.Address.ToString();
-				}
+				return endPoint?.Address;
 			}
-
-			return null;
 		}
 
+		/// <summary>
+		/// Gets a single charecter input from the user with a timespan delay. if the user fails to input before the delay, default value is returned.
+		/// </summary>
+		/// <param name="delay">The delay to wait.</param>
+		/// <returns>The pressed key else null if nothing pressed.</returns>
 		public static ConsoleKeyInfo? FetchUserInputSingleChar(TimeSpan delay) {
 			Task<ConsoleKeyInfo> task = Task.Factory.StartNew(Console.ReadKey);
-			ConsoleKeyInfo? result = Task.WaitAny(new Task[] { task }, delay) == 0 ? task.Result : (ConsoleKeyInfo?) null;
-			return result;
+			Task<ConsoleKeyInfo> consoleKeyTask = Task.Factory.StartNew(() => Console.ReadKey(true));
+			int exeCount = Task.WaitAny(new Task[]{
+				consoleKeyTask
+			}, delay );
+
+			return exeCount == 0 ? consoleKeyTask.Result : default;
 		}
 
-		public static void SetConsoleTitle(string text) => Console.Title = text;
+		/// <summary>
+		/// Sets the current console title.
+		/// </summary>
+		/// <param name="title">The title text.</param>
+		public static void SetConsoleTitle(string title){
+			if(string.IsNullOrEmpty(title)){
+				return;
+			}
 
+			Console.Title = title;
+		}
+
+		/// <summary>
+		/// Sets the current console title.
+		/// </summary>
+		/// <param name="title">The title text.</param>
+		public static void AsConsoleTitle(this string title) => SetConsoleTitle(title);
+
+		/// <summary>
+		/// Converts unix time stamp to DateTime instance.
+		/// </summary>
+		/// <returns>The DateTime instance</returns>
 		public static DateTime UnixTimeStampToDateTime(double unixTimeStamp) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTimeStamp).ToLocalTime();
 
-		public static async Task<string> GetExternalIp() {
+		/// <summary>
+		/// Converts the timestamp to DateTime instance.
+		/// </summary>
+		/// <returns>The DateTime instance</returns>
+		public static DateTime ToDateTime(this double timestamp) => UnixTimeStampToDateTime(timestamp);
+
+		/// <summary>
+		/// Gets the current network's Public IP
+		/// </summary>
+		/// <returns>the IP if success, else null.</returns>
+		public static async Task<string?> GetPublicIP() {
 			if (!IsNetworkAvailable()) {
 				return null;
 			}
 
-			return await "https://api.ipify.org/".RequestAsString();
+			return await "https://api.ipify.org/".RequestAsString().ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Gets an environment variable value, if it exists.
+		/// </summary>
+		/// <returns>The environment variable value.</returns>
 		public static string? GetEnvironmentVariable(string variable, EnvironmentVariableTarget target = EnvironmentVariableTarget.Machine) => Environment.GetEnvironmentVariable(variable, target);
 
+		/// <summary>
+		/// Sets an environment variable.
+		/// </summary>
+		/// <param name="variableName">The variable name</param>
+		/// <param name="variableValue">The variable value</param>
+		/// <param name="target">The target of the environment variable</param>
+		/// <returns>True if success, else false.</returns>
 		public static bool SetEnvironmentVariable(string variableName, string variableValue, EnvironmentVariableTarget target) {
 			try {
 				Environment.SetEnvironmentVariable(variableName, variableValue, target);
 				return true;
 			}
-			catch (Exception e) {
+			catch (Exception) {
 				return false;
 			}
 		}
 
-		public static DateTime ConvertTo24Hours(DateTime source) =>
+		/// <summary>
+		/// Converts specified DateTime instance to 24 hour formate.
+		/// </summary>
+		/// <param name="source">The soruce DateTime Instance</param>
+		/// <returns>The 12 hour formate DateTime Instance</returns>
+		public static DateTime To24Hours(this DateTime source) =>
 			DateTime.TryParse(source.ToString("yyyy MMMM d HH:mm:ss tt"), out DateTime result) ? result : DateTime.Now;
 
-		public static DateTime ConvertTo12Hours(DateTime source) =>
+		/// <summary>
+		/// Converts specified DateTime instance to 12 hour formate.
+		/// </summary>
+		/// <param name="source">The soruce DateTime Instance</param>
+		/// <returns>The 24 hour formate DateTime Instance</returns>
+		public static DateTime To12Hours(this DateTime source) =>
 			DateTime.TryParse(source.ToString("dddd, dd MMMM yyyy"), out DateTime result) ? result : DateTime.Now;
-
-		public static string GetLocalIPv4(NetworkInterfaceType typeOfNetwork) {
-			string output = "";
-			foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces()) {
-				if (item.NetworkInterfaceType == typeOfNetwork && item.OperationalStatus == OperationalStatus.Up) {
-					foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses) {
-						if (ip.Address.AddressFamily == AddressFamily.InterNetwork) {
-							output = ip.Address.ToString();
-						}
-					}
-				}
-			}
-			return output;
-		}
-
-		public static async Task<string> RequestAsString(this string url) {
+		
+		/// <summary>
+		/// Downloads the specified url request result as a string. if the string is not a url, fails and returns null.
+		/// </summary>
+		/// <param name="url">The url</param>
+		/// <returns>The string result</returns>
+		public static async Task<string?> RequestAsString(this string url) {
 			if (string.IsNullOrEmpty(url)) {
 				return null;
+			}
+
+			Uri requestUri;
+
+			try{
+				requestUri = new Uri(url);
+			}catch{
+				return default;
 			}
 
 			if (!IsNetworkAvailable()) {
@@ -453,7 +474,7 @@ namespace Synergy.Extensions {
 			}
 
 			using (HttpClient client = new HttpClient()) {
-				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url)) {
+				using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri)) {
 					using (HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false)) {
 						if (!response.IsSuccessStatusCode) {
 							return default;
@@ -465,18 +486,11 @@ namespace Synergy.Extensions {
 			}
 		}
 
-		public static string GetFileName(string? path) {
-			if (string.IsNullOrEmpty(path)) {
-				return string.Empty;
-			}
-
-			if (GetPlatform().Equals(OSPlatform.Windows)) {
-				return Path.GetFileName(path) ?? string.Empty;
-			}
-
-			return path.Substring(path.LastIndexOf(FileSeperator, StringComparison.Ordinal) + 1);
-		}
-
+		/// <summary>
+		/// Reads a string from the standard input (Console) and masks the entered value. Useful for passwords.
+		/// </summary>
+		/// <param name="mask">The mask charecter to use.</param>
+		/// <returns>The received string. (Without any masking)</returns>
 		public static string ReadLineMasked(char mask = '*') {
 			StringBuilder result = new StringBuilder();
 
@@ -506,50 +520,49 @@ namespace Synergy.Extensions {
 			return result.ToString();
 		}
 
-		public static void WriteBytesToFile(byte[] bytesToWrite, string filePath) {
-			if (bytesToWrite.Length <= 0 || string.IsNullOrEmpty(filePath) || string.IsNullOrWhiteSpace(filePath)) {
+		/// <summary>
+		/// Writes the bytes to a file specified.
+		/// </summary>
+		/// <param name="bytesToWrite">The bytes</param>
+		/// <param name="filePath">The path to the file, if file doesn't exist, it is created. If exists, it is overwritten.</param>
+		public static async Task ToFile(this byte[] bytesToWrite, string filePath) {
+			if (bytesToWrite.Length <= 0 || string.IsNullOrEmpty(filePath)) {
 				return;
 			}
 
-			File.WriteAllBytes(filePath, bytesToWrite);
+			await File.WriteAllBytesAsync(filePath, bytesToWrite).ConfigureAwait(false);
 		}
 
-		public static Thread? InBackgroundThread(Action action, string? threadName, bool longRunning = false) {
+		/// <summary>
+		/// Executes the specified action in a background thread. Not to be confused with InBackground();
+		/// </summary>
+		/// <param name="action">The action to execute.</param>
+		/// <param name="threadName">The thread name. Will use default generated name if not specified.</param>
+		/// <param name="longRunning">Set as true if the specified function is a long running one.</param>
+		/// <returns>The created thread</returns>
+		public static Thread? InBackgroundThread(Action action, string? threadName = null, bool longRunning = false) {
 			if (action == null) {
 				return null;
 			}
 
 			ThreadStart threadStart = new ThreadStart(action);
-			Thread BackgroundThread = new Thread(threadStart);
+			Thread backgroundThread = new Thread(threadStart);
 
 			if (longRunning) {
-				BackgroundThread.IsBackground = true;
+				backgroundThread.IsBackground = true;
 			}
 
-			BackgroundThread.Name = !string.IsNullOrEmpty(threadName) ? threadName : action.GetHashCode().ToString();
-			BackgroundThread.Priority = ThreadPriority.Normal;
-			BackgroundThread.Start();
-			return BackgroundThread;
+			backgroundThread.Name = threadName ?? action.GetHashCode().ToString();
+			backgroundThread.Priority = ThreadPriority.Normal;
+			backgroundThread.Start();
+			return backgroundThread;
 		}
 
-		public static Thread? InBackgroundThread(Action action, bool longRunning = false) {
-			if (action == null) {
-				return null;
-			}
-
-			ThreadStart threadStart = new ThreadStart(action);
-			Thread BackgroundThread = new Thread(threadStart);
-
-			if (longRunning) {
-				BackgroundThread.IsBackground = true;
-			}
-
-			BackgroundThread.Name = action.GetHashCode().ToString();
-			BackgroundThread.Priority = ThreadPriority.Normal;
-			BackgroundThread.Start();
-			return BackgroundThread;
-		}
-
+		/// <summary>
+		/// Schedules execution of an Action in background.
+		/// </summary>
+		/// <param name="action">The action to execute</param>
+		/// <param name="longRunning">Set as true if the specified function is a long running one.</param>
 		public static void InBackground(Action action, bool longRunning = false) {
 			if (action == null) {
 				return;
@@ -563,40 +576,13 @@ namespace Synergy.Extensions {
 
 			Task.Factory.StartNew(action, CancellationToken.None, options, TaskScheduler.Default);
 		}
-
-		public static void ExecuteCommand(string command, bool redirectOutput = false, string fileName = "/bin/bash") {
-			if (GetPlatform() != OSPlatform.Linux && fileName == "/bin/bash") {
-				return;
-			}
-
-			try {
-				Process proc = new Process {
-					StartInfo = {
-						FileName = fileName,
-						Arguments = "-c \" " + command + " \"",
-						UseShellExecute = false,
-						CreateNoWindow = true,
-						WindowStyle = ProcessWindowStyle.Hidden
-					}
-				};
-
-
-				proc.StartInfo.RedirectStandardOutput = redirectOutput;
-
-				proc.Start();
-				proc.WaitForExit(4000);
-
-				if (redirectOutput) {
-					while (!proc.StandardOutput.EndOfStream) {
-						string? output = proc.StandardOutput.ReadLine();
-						if (output != null) {
-						}
-					}
-				}
-			}
-			catch (Exception) { }
-		}
-
+		
+		/// <summary>
+		/// Schedules execution of a Function<T> in background.
+		/// </summary>
+		/// <param name="function">The function to execute</param>
+		/// <param name="longRunning">Set as true if the specified function is a long running one.</param>
+		/// <typeparam name="T">The function type.</typeparam>
 		public static void InBackground<T>(Func<T> function, bool longRunning = false) {
 			if (function == null) {
 				return;
@@ -611,7 +597,13 @@ namespace Synergy.Extensions {
 			Task.Factory.StartNew(function, CancellationToken.None, options, TaskScheduler.Default);
 		}
 
-		public static async Task<IList<T>> InParallel<T>(IEnumerable<Task<T>> tasks) {
+		/// <summary>
+		/// Execute all tasks in IEnumerable<Task<T>> as parallel in async way, and returns the result T when all of them completes.
+		/// </summary>
+		/// <param name="tasks">The collection of tasks to execute.</param>
+		/// <typeparam name="T">The return result.</typeparam>
+		/// <returns></returns>
+		public static async Task<IList<T>?> InParallel<T>(IEnumerable<Task<T>> tasks) {
 			if (tasks == null) {
 				return null;
 			}
@@ -620,6 +612,11 @@ namespace Synergy.Extensions {
 			return results;
 		}
 
+		/// <summary>
+		/// Execute all tasks in IEnumerable<Task> as parallel, and returns when all of them completes.
+		/// </summary>
+		/// <param name="tasks">The collection of tasks to execute.</param>
+		/// <returns></returns>
 		public static async Task InParallel(IEnumerable<Task> tasks) {
 			if (tasks == null) {
 				return;
@@ -628,31 +625,35 @@ namespace Synergy.Extensions {
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 
-		public static bool IsNetworkAvailable(string _host = null) {
-			try {
-				Ping myPing = new Ping();
-				string host = _host ?? "8.8.8.8";
-				byte[] buffer = new byte[32];
-				int timeout = 1000;
-				PingOptions pingOptions = new PingOptions();
-				PingReply reply = myPing.Send(host, timeout, buffer, pingOptions);
-				return reply != null && reply.Status == IPStatus.Success;
-			}
-			catch (Exception e) {
-				return false;
-			}
+		/// <summary>
+		/// Check if Internet connectivity is present for the current system.
+		/// </summary>
+		/// <param name="ipAddress">The ip address of the host destination to check with. Will use default (8.8.8.8) if not specified.</param>
+		/// <returns></returns>
+		public static bool IsNetworkAvailable(IPAddress? ipAddress = null) {
+            const int timeout = 1000;
+            using (Ping ping = new Ping())
+            {
+                IPAddress host = ipAddress ?? IPAddress.Parse("8.8.8.8");
+                PingReply pingReply = ping.Send(host, timeout);
+                return pingReply.Status == IPStatus.Success;
+            }
 		}
 
-		public static void CloseProcess(string processName) {
-			if (string.IsNullOrEmpty(processName) || string.IsNullOrWhiteSpace(processName)) {
+		/// <summary>
+		/// Close a specified process, if it exists.
+		/// </summary>
+		/// <param name="processName">The process name</param>
+		/// <param name="killSubProcesses">Pass as true if all the child processes of the specified parent process should also be killed off.</param>
+		public static void CloseProcess(string processName, bool killSubProcesses = false) {
+			if (string.IsNullOrEmpty(processName)) {
 				return;
 			}
 
-			Process[] workers = Process.GetProcessesByName(processName);
-			foreach (Process worker in workers) {
-				worker.Kill();
-				worker.WaitForExit();
-				worker.Dispose();
+			foreach(Process process in Process.GetProcessesByName(processName)){
+				process.Kill(killSubProcesses);
+				process.WaitForExit();
+				process.Dispose();
 			}
 		}
 	}

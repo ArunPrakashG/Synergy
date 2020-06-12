@@ -1,6 +1,8 @@
+using Synergy.Extensions;
 using Synergy.Logging.EventArgs;
 using Synergy.Logging.Interfaces;
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using static Synergy.Logging.Enums;
 
@@ -142,7 +144,7 @@ namespace Synergy.Logging {
 			[CallerFilePath] string? filePath = null) {
 			switch (level) {
 				case LogLevels.Trace:
-					Trace($"[{Helpers.GetFileName(filePath)} | {lineNo}] {message}", methodName);
+					Trace($"[{Path.GetFileName(filePath)} | {lineNo}] {message}", methodName);
 					break;
 
 				case LogLevels.Debug:
@@ -154,7 +156,7 @@ namespace Synergy.Logging {
 					break;
 
 				case LogLevels.Warn:
-					Warning($"[{Helpers.GetFileName(filePath)} | {lineNo}] " + message, methodName);
+					Warning($"[{Path.GetFileName(filePath)} | {lineNo}] " + message, methodName);
 					break;
 
 				case LogLevels.Green:
