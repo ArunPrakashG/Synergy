@@ -87,9 +87,16 @@ namespace Synergy.Requests {
 			DELAY_BETWEEN_REQUESTS = _delayBetweenRequests;
 			DELAY_BETWEEN_FAILED_REQUESTS = _delayBetweenFailedRequests;
 			Cookies = ClientHandler.CookieContainer;
-			Client = new HttpClient(ClientHandler, false);
+			Client = new HttpClient(ClientHandler, false);		
 		}
 
+		/// <summary>
+		/// Send a GET request to the specified URL and return the result as string.
+		/// </summary>
+		/// <param name="requestUrl">The URL the send the request to.</param>
+		/// <param name="data">The Headers to append with the requests.</param>
+		/// <param name="maxTries">The maximum number of tries before the request is considered as a fail.</param>
+		/// <returns>The string result of the request if success, else null.</returns>
 		public async Task<string> InternelRequestGet(string requestUrl, Dictionary<string, string> data = null, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl)) {
 				return default;
