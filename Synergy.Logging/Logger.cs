@@ -1,34 +1,31 @@
-using Synergy.Extensions;
 using Synergy.Logging.EventArgs;
 using Synergy.Logging.Interfaces;
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using static Synergy.Logging.Enums;
 
 namespace Synergy.Logging {
 	public class Logger : ILogger {
-		public string? LogIdentifier { get; set; }
+		public string? LogIdentifier { get; }
 
-		public Logger(string loggerIdentifier) => RegisterLogger(loggerIdentifier);
+		/// <summary>
+		/// ctor
+		/// </summary>
+		/// <param name="_logIdentifier">the log identifier.</param>
+		/// <returns></returns>
+		public Logger(string _logIdentifier) => LogIdentifier = _logIdentifier ?? throw new ArgumentNullException(nameof(_logIdentifier) + " is null!");
 
-		public delegate void OnLogMessageReceived(object sender, LogMessageEventArgs e);
+		/// <summary>
+		/// Log message received delegate.
+		/// </summary>
+		/// <param name="sender">The sender.</param>
+		/// <param name="e">The event object consisting the fired log message details.</param>
+		public delegate void OnLogMessageReceived(object sender, OnLogMessageReceivedEventArgs e);
+
+		/// <summary>
+		/// Fired when a log message is received.
+		/// </summary>
 		public static event OnLogMessageReceived? LogMessageReceived;
-
-		public delegate void OnWarningMessageReceived(object sender, EventArgsBase e);
-		public static event OnWarningMessageReceived? OnWarningReceived;
-
-		public delegate void OnErrorMessageReceived(object sender, EventArgsBase e);
-		public static event OnErrorMessageReceived? OnErrorReceived;
-
-		public delegate void OnInputMessageReceived(object sender, EventArgsBase e);
-		public static event OnInputMessageReceived? OnInputReceived;
-
-		public delegate void OnColoredOutputRequested(object sender, WithColorEventArgs e);
-		public static event OnColoredOutputRequested? OnColoredReceived;
-
-		public delegate void OnExceptionMessageRecevied(object sender, OnExceptionMessageEventArgs e);
-		public static event OnExceptionMessageRecevied? OnExceptionReceived;
 
 		public void Debug(string? message,
 			[CallerMemberName] string? previousMethodName = null,
@@ -38,7 +35,7 @@ namespace Synergy.Logging {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Debug, previousMethodName, callermemberlineNo, calledFilePath));
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Debug, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Error(string? message,
@@ -49,33 +46,29 @@ namespace Synergy.Logging {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Error, previousMethodName, callermemberlineNo, calledFilePath));
-			OnErrorReceived?.Invoke(this, new EventArgsBase(LogIdentifier, DateTime.Now, message, previousMethodName, callermemberlineNo, calledFilePath));
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Error, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Exception(Exception? exception,
 			[CallerMemberName] string? previousMethodName = null,
 			[CallerLineNumber] int callermemberlineNo = 0,
 			[CallerFilePath] string? calledFilePath = null) {
-
 			if (exception == null || exception.GetBaseException() == null) {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, exception.ToString(), DateTime.Now, LogLevels.Exception, previousMethodName, callermemberlineNo, calledFilePath));
-			OnExceptionReceived?.Invoke(this, new OnExceptionMessageEventArgs(LogIdentifier, exception, DateTime.Now, previousMethodName, callermemberlineNo, calledFilePath));
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, exception.ToString(), DateTime.Now, LogLevels.Exception, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Info(string? message,
 			[CallerMemberName] string? previousMethodName = null,
 			[CallerLineNumber] int callermemberlineNo = 0,
 			[CallerFilePath] string? calledFilePath = null) {
-
 			if (string.IsNullOrEmpty(message)) {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Info, previousMethodName, callermemberlineNo, calledFilePath));
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Info, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Trace(string? message,
@@ -86,7 +79,7 @@ namespace Synergy.Logging {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Trace, previousMethodName, callermemberlineNo, calledFilePath));			
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Trace, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Warning(string? message,
@@ -98,8 +91,7 @@ namespace Synergy.Logging {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Warn, previousMethodName, callermemberlineNo, calledFilePath));
-			OnWarningReceived?.Invoke(this, new EventArgsBase(LogIdentifier, DateTime.Now, message, previousMethodName, callermemberlineNo, calledFilePath));
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Warn, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void WithColor(string? message, ConsoleColor color = ConsoleColor.Cyan,
@@ -110,8 +102,7 @@ namespace Synergy.Logging {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Custom, previousMethodName, callermemberlineNo, calledFilePath));
-			OnColoredReceived?.Invoke(this, new WithColorEventArgs(LogIdentifier, DateTime.Now, message, color, previousMethodName, callermemberlineNo, calledFilePath));						
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Custom, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Input(string? message,
@@ -122,15 +113,13 @@ namespace Synergy.Logging {
 				return;
 			}
 
-			LogMessageReceived?.Invoke(this, new LogMessageEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Input, previousMethodName, callermemberlineNo, calledFilePath));
-			OnInputReceived?.Invoke(this, new EventArgsBase(LogIdentifier, DateTime.Now, message, previousMethodName, callermemberlineNo, calledFilePath));			
+			LogMessageReceived?.Invoke(this, new OnLogMessageReceivedEventArgs(LogIdentifier, message, DateTime.Now, LogLevels.Input, previousMethodName, callermemberlineNo, calledFilePath));
 		}
 
 		public void Log(Exception? e,
 			[CallerMemberName] string? previousMethodName = null,
 			[CallerLineNumber] int callermemberlineNo = 0,
 			[CallerFilePath] string? calledFilePath = null) {
-
 			if (e == null) {
 				return;
 			}
@@ -142,6 +131,10 @@ namespace Synergy.Logging {
 			[CallerMemberName] string? methodName = null,
 			[CallerLineNumber] int lineNo = 0,
 			[CallerFilePath] string? filePath = null) {
+			if (string.IsNullOrEmpty(message)) {
+				return;
+			}
+
 			switch (level) {
 				case LogLevels.Trace:
 					Trace($"[{Path.GetFileName(filePath)} | {lineNo}] {message}", methodName);
@@ -205,18 +198,21 @@ namespace Synergy.Logging {
 			}
 		}
 
-		public void InitLogger(string? logId) => RegisterLogger(logId);
-
-		private void RegisterLogger(string? logId) {
-			if (string.IsNullOrEmpty(logId)) {
-				throw new ArgumentNullException(nameof(logId));
-			}
-
-			LogIdentifier = logId;
-		}
-
-		public void ShutdownLogger() {
-			
+		public enum LogLevels {
+			Trace,
+			Debug,
+			Info,
+			Warn,
+			Error,
+			Exception,
+			Fatal,
+			Green,
+			Red,
+			Blue,
+			Cyan,
+			Magenta,
+			Input,
+			Custom
 		}
 	}
 }

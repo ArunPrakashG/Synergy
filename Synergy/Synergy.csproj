@@ -7,7 +7,7 @@
     <Description>A package containing multiple helpers and extensions.</Description>
     <PackageProjectUrl>https://github.com/ArunPrakashG/Synergy</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ArunPrakashG/Synergy</RepositoryUrl>
-    <RepositoryType>Github</RepositoryType>
+    <RepositoryType>GitHub</RepositoryType>    
   </PropertyGroup>
 
   <ItemGroup>

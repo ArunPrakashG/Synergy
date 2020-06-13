@@ -1,32 +1,13 @@
 using Synergy.Logging.Interfaces;
 using System;
 using System.Runtime.CompilerServices;
-using static Synergy.Logging.Enums;
 using static Synergy.Logging.Logger;
 
 namespace Synergy.Logging {
-	public static class LoggerExtensions {
-		public static void RegisterLoggerEvent(object? eventHandler) {
-			if (eventHandler == null) {
-				return;
-			}
-
-			if ((eventHandler as OnLogMessageReceived) != null) {
-				LogMessageReceived += eventHandler as OnLogMessageReceived;
-			}
-			else if ((eventHandler as OnWarningMessageReceived) != null) {
-				OnWarningReceived += eventHandler as OnWarningMessageReceived;
-			}
-			else if ((eventHandler as OnErrorMessageReceived) != null) {
-				OnErrorReceived += eventHandler as OnErrorMessageReceived;
-			}
-			else {
-				if (((eventHandler as OnExceptionMessageRecevied) != null)) {
-					OnExceptionReceived += eventHandler as OnExceptionMessageRecevied;
-				}
-			}
-		}
-
+	/// <summary>
+	/// Contains extension methods which helps to log messages easily.
+	/// </summary>
+	public static class LoggerExtensions {		
 		public static void LogInfo(this string msg, ILogger logger,
 			[CallerMemberName] string? previousMethodName = null,
 			[CallerLineNumber] int callermemberlineNo = 0,

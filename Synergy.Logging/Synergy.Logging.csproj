@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Synergy.Extensions\Synergy.Extensions.csproj" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
 </Project>

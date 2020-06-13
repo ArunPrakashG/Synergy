@@ -160,19 +160,12 @@ namespace Synergy.Extensions {
 				return false;
 			}
 
-			bool? temp;
-			switch (value) {
-				case "1":
-					temp = true;
-					break;
-				case "0":
-					temp = false;
-					break;
-				default:
-					temp = null;
-					break;
-			}
-
+			bool? temp = value switch
+			{
+				"1" => true,
+				"0" => false,
+				_ => null,
+			};
 			bool parseResult = bool.TryParse(value, out bool parsed);
 
 			if (parseResult && parsed == temp) {
@@ -219,7 +212,7 @@ namespace Synergy.Extensions {
 		/// <param name="rand">The Random instance if the generation should use the specified instance. If not supplied, it will use default one.</param>
 		/// <returns>The float value.</returns>
 		public static float GenerateUniqueIdentifier(Random? rand = null) {
-			rand = rand ?? Random;
+			rand ??= Random;
 			int sign = rand.Next(2);
 			int exponent = rand.Next((1 << 8) - 1);
 			int mantissa = rand.Next(1 << 23);
@@ -269,7 +262,7 @@ namespace Synergy.Extensions {
 				return false;
 			}
 
-			return (s.Poll(1000, SelectMode.SelectRead) && (s.Available == 0));
+			return s.Poll(1000, SelectMode.SelectRead) && (s.Available == 0);
 		}
 
 		/// <summary>
@@ -318,7 +311,6 @@ namespace Synergy.Extensions {
 
 			string escapedArgs = cmd.Replace("\"", "\\\"");
 			string args = $"-c \"{escapedArgs}\"";
-			string argsWithSudo = $"-c \"sudo {escapedArgs}\"";
 
 			using Process process = new Process() {
 				StartInfo = new ProcessStartInfo {

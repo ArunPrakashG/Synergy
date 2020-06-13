@@ -14,7 +14,7 @@ namespace Synergy.Requests {
 	/// <summary>
 	/// The main <see cref="SynRequester" /> class.
 	/// <para>Helpers to send requests and get their response, in multiple ways, with inbuilt request delays and retry mechanism</para>.
-	/// <para>Inherits <see cref="IDisposable" />, all methods can be warapped inside using() blocks</para>.
+	/// <para>Inherits <see cref="IDisposable" />, all methods can be warpped inside using() blocks</para>.
 	/// </summary>
 	public sealed class SynRequester : IDisposable {
 		/// <summary>
@@ -147,6 +147,13 @@ namespace Synergy.Requests {
 			return default;
 		}
 
+		/// <summary>
+		/// Sends a <see cref="HttpRequestMessage"/> request and returns result object.
+		/// </summary>
+		/// <param name="request">The <see cref="HttpRequestMessage"/> request instance.</param>
+		/// <param name="maxTries">The maximum number of tries before the request is considered as a fail.</param>
+		/// <typeparam name="T">The type of result object, used to deserialize the result json.</typeparam>
+		/// <returns>The result object.</returns>
 		public async Task<T> InternalRequestAsObject<T>(
 			HttpRequestMessage request, int maxTries = MAX_TRIES) {
 			if (request == null) {
@@ -192,6 +199,15 @@ namespace Synergy.Requests {
 			return default;
 		}
 
+		/// <summary>
+		/// Send a generic HTTP request to the specified url with the specified method and headers.
+		/// </summary>
+		/// <param name="method">the <see cref="HttpMethod"/> to use for the request.</param>
+		/// <param name="requestUrl">The URL the send the request to.</param>
+		/// <param name="data">headers which should be appended to the request, if any.</param>
+		/// <param name="maxTries">The maximum number of tries before the request is considered as a fail.</param>
+		/// <typeparam name="T">The type of result object, used to deserialize the result json.</typeparam>
+		/// <returns>The result object.</returns>
 		public async Task<T> InternalRequestAsObject<T>(
 			HttpMethod method, string requestUrl, Dictionary<string, string> data, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl)) {
@@ -243,6 +259,17 @@ namespace Synergy.Requests {
 			return default;
 		}
 
+		/// <summary>
+		/// Send a generic, unparsed, JSON serializable object as an HTTP request to the specified url with the specified method and headers.
+		/// </summary>
+		/// <param name="requestJsonContent">the JSON serializable object of the request.</param>
+		/// <param name="method">the <see cref="HttpMethod"/> to use for the request.</param>
+		/// <param name="requestUrl">The URL the send the request to.</param>
+		/// <param name="data">headers which should be appended to the request, if any.</param>
+		/// <param name="maxTries">The maximum number of tries before the request is considered as a fail.</param>
+		/// <typeparam name="TRequestType">the type of request object.</typeparam>
+		/// <typeparam name="UResponseType">the type of response object.</typeparam>
+		/// <returns>the result, Deserialized as <see cref="UResponseType"/> type.</returns>
 		public async Task<UResponseType> InternalRequestAsObject<TRequestType, UResponseType>(
 			TRequestType requestJsonContent, HttpMethod method, string requestUrl, Dictionary<string, string> data, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl) || requestJsonContent == null) {
@@ -296,6 +323,17 @@ namespace Synergy.Requests {
 			return default;
 		}
 
+		/// <summary>
+		/// Send a generic, unparsed, JSON serializable object as an HTTP request to the specified url with the specified method and headers and get the response and the request objects in a struct.
+		/// </summary>
+		/// <param name="method">the <see cref="HttpMethod"/> to use for the request.</param>
+		/// <param name="requestUrl">The URL the send the request to.</param>
+		/// <param name="data">headers which should be appended to the request, if any.</param>
+		/// <param name="requestJsonContent">the JSON serializable object of the request.</param>
+		/// <param name="maxTries">The maximum number of tries before the request is considered as a fail.</param>
+		/// <typeparam name="TRequestType">the type of request object.</typeparam>
+		/// <typeparam name="UResponseType">the type of response object.</typeparam>
+		/// <returns>a struct containing both request (<see cref="TRequestType"/>) and response (<see cref="UResponseType"/>) objects.</returns>
 		public async Task<InternalRequestAsObjectModel<TRequestType, UResponseType>> InternalRequestAsObject<TRequestType, UResponseType>(
 			HttpMethod method, string requestUrl, Dictionary<string, string> data, TRequestType requestJsonContent, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl) || requestJsonContent == null) {
@@ -349,6 +387,13 @@ namespace Synergy.Requests {
 			return default;
 		}
 
+		/// <summary>
+		/// A wrapper for all internal requests.
+		/// <para>Requests are rate limited through this function().</para>
+		/// </summary>
+		/// <param name="function">the request function()</param>
+		/// <typeparam name="T">the type of the response of the request.</typeparam>
+		/// <returns>the result</returns>
 		private async Task<T> ExecuteRequest<T>(Func<Task<T>> function) {
 			if (function == null) {
 				return default;
@@ -364,7 +409,10 @@ namespace Synergy.Requests {
 				Sync.Release();
 			}
 		}
-
+		
+		/// <summary>
+		/// Disposes Semaphores and Clients used internally.
+		/// </summary>
 		public void Dispose() {
 			ClientHandler?.Dispose();
 			Client?.Dispose();
