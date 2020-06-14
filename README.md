@@ -9,3 +9,4 @@ I hope many of you will find it usefull too!
 * Synergy.Logging - An event based logging library which i use in almost all my projects. As a good example for the use, 
 take it as you have a solution with multiple projects, u can reference this library as the logger on all projects and just use the static events to get the LogEvent messages on just a single project or a class. (getting all log message on Main.cs and handling it there)
 * Synergy.Requests - An HttpClient library for sending and receiving various HTTP requests with ease. its a IDisposable with thread safety (well not much but hey it works)
+* Synergy.PInvoke - A wrapper for some unmanaged functions, such as getting window position, performing mouse events such as clicks, etc.
