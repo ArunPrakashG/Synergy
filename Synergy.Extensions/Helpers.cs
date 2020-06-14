@@ -24,7 +24,7 @@ namespace Synergy.Extensions {
 
 		/// <summary>
 		/// A Global static Random ensures that there will be least chances of repeated results.
-		/// <para>Can be overrided on the using functions.</para>
+		/// <para>Can be overrided on the respective functions.</para>
 		/// </summary>
 		private static readonly Random Random;
 

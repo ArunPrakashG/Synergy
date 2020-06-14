@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 namespace Synergy.Requests {
 	/// <summary>
 	/// The main <see cref="SynRequester" /> class.
-	/// <para>Helpers to send requests and get their response, in multiple ways, with inbuilt request delays and retry mechanism</para>.
-	/// <para>Inherits <see cref="IDisposable" />, all methods can be warpped inside using() blocks</para>.
+	/// <para>Helpers to send requests and get their response, in multiple ways, with inbuilt request delays and retry mechanism</para>
+	/// <para>Inherits <see cref="IDisposable" />, all methods can be warpped inside using() blocks</para>
 	/// </summary>
 	public sealed class SynRequester : IDisposable {
 		/// <summary>
