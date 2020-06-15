@@ -87,7 +87,7 @@ namespace Synergy.Requests {
 			DELAY_BETWEEN_REQUESTS = _delayBetweenRequests;
 			DELAY_BETWEEN_FAILED_REQUESTS = _delayBetweenFailedRequests;
 			Cookies = ClientHandler.CookieContainer;
-			Client = new HttpClient(ClientHandler, false);		
+			Client = new HttpClient(ClientHandler, false);			
 		}
 
 		/// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
@@ -10,12 +11,21 @@ namespace Synergy.PInvoke {
 		[DllImport("user32.dll", SetLastError = true)]
 		private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
+		[DllImport("User32.dll")]
+		private static extern int SetForegroundWindow(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		private static extern bool SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
 		[DllImport("user32.dll", SetLastError = true)]
 		private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
 		[DllImport("user32.dll")]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+
+		private const int WM_SYSCOMMAND = 0x0112;
+		private const int SC_RESTORE = 0xF120;
 
 		/// <summary>
 		/// Sets the window position of a specified window.
@@ -24,7 +34,7 @@ namespace Synergy.PInvoke {
 		/// <param name="position">The positional coordinates, in <see cref="WindowPosition"/> struct.</param>
 		/// <param name="windowFlags">The flags to set for the window.</param>
 		/// <returns>status of the execution</returns>
-		private static bool SetWindowPosition(string windowName, WindowPosition position, SetWindowPosFlags windowFlags = SetWindowPosFlags.SWP_SHOWWINDOW) {
+		public static bool SetWindowPosition(string windowName, WindowPosition position, SetWindowPosFlags windowFlags = SetWindowPosFlags.SWP_SHOWWINDOW) {
 			if (string.IsNullOrEmpty(windowName)) {
 				return false;
 			}
@@ -46,7 +56,7 @@ namespace Synergy.PInvoke {
 		/// <param name="specialWindowHandle">Used to pass any special handles for the window on the unmanaged function.</param>
 		/// <param name="windowFlags">The flags to set for the window.</param>
 		/// <returns>status of the execution</returns>
-		private static bool SetWindowPosition(string windowName, WindowPosition position, SpecialWindowHandles specialWindowHandle, SetWindowPosFlags windowFlags = SetWindowPosFlags.SWP_SHOWWINDOW) {
+		public static bool SetWindowPosition(string windowName, WindowPosition position, SpecialWindowHandles specialWindowHandle, SetWindowPosFlags windowFlags = SetWindowPosFlags.SWP_SHOWWINDOW) {
 			if (string.IsNullOrEmpty(windowName)) {
 				return false;
 			}
@@ -62,12 +72,60 @@ namespace Synergy.PInvoke {
 		}
 
 		/// <summary>
+		/// Brings the specified window to foreground and sets them in focus.
+		/// </summary>
+		/// <param name="windowName">The window name</param>
+		/// <returns>status of the execution</returns>
+		public static bool BringWindowToForeground(string windowName) {
+			if (string.IsNullOrEmpty(windowName)) {
+				return false;
+			}
+
+			IntPtr hWnd = FindWindow(windowName, null);
+
+			if (hWnd == IntPtr.Zero) {
+				return false;
+			}
+			
+			SetForegroundWindow(hWnd);
+			return SendMessage(hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+		}
+
+		/// <summary>
+		/// Brings the main window used by the specified process to foreground and sets them in focus.
+		/// </summary>
+		/// <param name="windowProcess">The window process</param>
+		/// <returns>status of the execution</returns>
+		public static bool BringWindowToForeground(Process windowProcess) {
+			if (windowProcess == null) {
+				return false;
+			}
+
+			SetForegroundWindow(windowProcess.MainWindowHandle);
+			return SendMessage(windowProcess.MainWindowHandle, WM_SYSCOMMAND, SC_RESTORE, 0);
+		}
+
+		/// <summary>
+		/// Brings the window associated with the specified <see cref="IntPtr"/> pointer to foreground and sets them in focus.
+		/// </summary>
+		/// <param name="winHandlePointer">The window pointer</param>
+		/// <returns>status of the execution</returns>
+		public static bool BringWindowToForeground(IntPtr winHandlePointer) {
+			if (winHandlePointer == null) {
+				return false;
+			}
+
+			SetForegroundWindow(winHandlePointer);
+			return SendMessage(winHandlePointer, WM_SYSCOMMAND, SC_RESTORE, 0);
+		}
+
+		/// <summary>
 		/// Gets the specified window position in <see cref="WINDOWPLACEMENT"/> struct.
 		/// </summary>
 		/// <param name="windowName">The name of the window to get the position of.</param>
 		/// <param name="windowPlacement">The position of the window specified.</param>
 		/// <returns>status of the execution</returns>
-		private static bool GetWindowPosition(string windowName, out WINDOWPLACEMENT windowPlacement) {
+		public static bool GetWindowPosition(string windowName, out WINDOWPLACEMENT windowPlacement) {
 			windowPlacement = new WINDOWPLACEMENT();
 
 			if (string.IsNullOrEmpty(windowName)) {
@@ -87,7 +145,7 @@ namespace Synergy.PInvoke {
 		/// <summary>
 		/// The struct which stores the window placement data.
 		/// </summary>
-		private struct WINDOWPLACEMENT {
+		public struct WINDOWPLACEMENT {
 			public int length;
 			public int flags;
 			public int showCmd;

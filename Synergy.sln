@@ -16,7 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synergy", "Synergy\Synergy.csproj", "{60F096BC-99B6-463A-ADD1-5EC6584B4F00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Synergy.PInvoke", "Synergy.PInvoke\Synergy.PInvoke.csproj", "{A78A7F59-CF16-4D95-A700-23D6E788FACF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Synergy.Invoke", "Synergy.PInvoke\Synergy.Invoke.csproj", "{A78A7F59-CF16-4D95-A700-23D6E788FACF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
