@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using static Synergy.PInvoke.KeyboardInput;
+using static Synergy.PInvoke.Keyboard;
 
 namespace Synergy.PInvoke {
 	/// <summary>
@@ -18,6 +18,10 @@ namespace Synergy.PInvoke {
 		/// </summary>
 		public readonly ScanCodeShort ScanCodeShort;
 
+		public readonly VirtualKeyShort VirtualKeyShort;
+
+		public readonly string KeyCodeString;
+
 		/// <summary>
 		/// Returns true only if <see cref="KeyChar"/> is valid.
 		/// </summary>
@@ -28,13 +32,21 @@ namespace Synergy.PInvoke {
 		/// </summary>
 		/// <param name="_keyChar">The key value, as a <see cref="char"/></param>
 		/// <param name="_scanCodeShort">The keyboard key scan code value.</param>
-		public Key(char _keyChar, ScanCodeShort _scanCodeShort) {
+		/// <param name="_keyCodeString">The string representation of the key code.</param>
+		/// <param name="_virtualKeyShort">The virtual key code value.</param>
+		public Key(char _keyChar, ScanCodeShort _scanCodeShort, string _keyCodeString, VirtualKeyShort _virtualKeyShort) {
 			KeyChar = _keyChar;
 			ScanCodeShort = _scanCodeShort;
+			KeyCodeString = _keyCodeString;
+			VirtualKeyShort = _virtualKeyShort;
 		}
 	}
 
-	public class KeyboardInput {
+	public struct KeyboardInput {
+
+	}
+
+	public class Keyboard {
 		[DllImport("user32.dll")]
 		private static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray), In] INPUT[] pInputs, int cbSize);
 
@@ -46,26 +58,47 @@ namespace Synergy.PInvoke {
 			INPUT Input = new INPUT {
 				type = 1 // 1 = Keyboard Input
 			};
-			Input.U.ki.wScan = ScanCodeShort.KEY_W;
-			Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			Inputs[0] = Input;
+			//Input.U.ki.wScan = ScanCodeShort.KEY_W;
+			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
+			//Inputs[0] = Input;
 
-			Input.type = 1; // 1 = Keyboard Input
-			Input.U.ki.wScan = ScanCodeShort.KEY_S;
-			Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			Inputs[1] = Input;
+			//Input.type = 1; // 1 = Keyboard Input
+			//Input.U.ki.wScan = ScanCodeShort.KEY_S;
+			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
+			//Inputs[1] = Input;
 
-			Input.type = 1; // 1 = Keyboard Input
-			Input.U.ki.wScan = ScanCodeShort.KEY_A;
-			Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			Inputs[2] = Input;
+			//Input.type = 1; // 1 = Keyboard Input
+			//Input.U.ki.wScan = ScanCodeShort.KEY_A;
+			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
+			//Inputs[2] = Input;
 
-			Input.type = 1; // 1 = Keyboard Input
-			Input.U.ki.wScan = ScanCodeShort.KEY_D;
-			Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			Inputs[3] = Input;
+			//Input.type = 1; // 1 = Keyboard Input
+			//Input.U.ki.wScan = ScanCodeShort.KEY_D;
+			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
+			//Inputs[3] = Input;
 
-			SendInput(4, Inputs, INPUT.Size);
+			//SendInput(4, Inputs, INPUT.Size);
+		}
+
+		private void test() {
+			INPUT[] inputs = new INPUT[10];
+
+			string text = "abc";
+			for(int i = 0; i < text.Length; i++) {
+				short scanCode = (short) text[i];
+				INPUT keyInput = new INPUT() {
+					type = 1,
+					U = new InputUnion() {
+						ki = new KEYBDINPUT() {
+							dwFlags = KEYEVENTF.UNICODE,
+							wScan = scanCode,
+							wVk = 0,
+							dwExtraInfo = UIntPtr.Zero
+						}
+					}
+				};
+				inputs[0] = keyInput;
+			}
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -105,7 +138,7 @@ namespace Synergy.PInvoke {
 		[StructLayout(LayoutKind.Sequential)]
 		public struct KEYBDINPUT {
 			public VirtualKeyShort wVk;
-			public ScanCodeShort wScan;
+			public short wScan;
 			public KEYEVENTF dwFlags;
 			public int time;
 			public UIntPtr dwExtraInfo;

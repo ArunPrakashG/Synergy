@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Synergy.Extensions\Synergy.Extensions.csproj" />
     <ProjectReference Include="..\Synergy.Logging\Synergy.Logging.csproj" />
+		<ProjectReference Include="..\Synergy.PInvoke\Synergy.PInvoke.csproj" />
     <ProjectReference Include="..\Synergy.Requests\Synergy.Requests.csproj" />
   </ItemGroup>
 
