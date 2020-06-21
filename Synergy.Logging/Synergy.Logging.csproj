@@ -1,12 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>Arun Prakash</Authors>
+		<Version>1.2.0</Version>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Description>An event based logging system.</Description>
+		<PackageProjectUrl>https://github.com/ArunPrakashG/Synergy</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ArunPrakashG/Synergy</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Synergy.Extensions\Synergy.Extensions.csproj" />
-  </ItemGroup>
-
+	<ItemGroup>
+	  <PackageReference Include="Synergy.Extensions" Version="1.2.0" />
+	</ItemGroup>
 </Project>
