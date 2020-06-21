@@ -4,5 +4,13 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+    <Version>1.2.0</Version>
+    <Authors>Arun Prakash</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Contains various Extensions and helpers.</Description>
+    <PackageProjectUrl>https://github.com/ArunPrakashG/Synergy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ArunPrakashG/Synergy</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 </Project>

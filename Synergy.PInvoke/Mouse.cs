@@ -6,7 +6,7 @@ namespace Synergy.PInvoke {
 	/// <summary>
 	/// Contains various methods to get and manipulate cursor positions and clicks.
 	/// </summary>
-	public static class MouseInput {
+	public static class Mouse {
 		[DllImport("user32.dll", EntryPoint = "SetCursorPos")]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool SetCursorPos(int x, int y);

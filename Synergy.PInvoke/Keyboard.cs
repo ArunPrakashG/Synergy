@@ -46,6 +46,7 @@ namespace Synergy.PInvoke {
 
 	}
 
+	[Obsolete("WIP atm.")]
 	public class Keyboard {
 		[DllImport("user32.dll")]
 		private static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray), In] INPUT[] pInputs, int cbSize);
