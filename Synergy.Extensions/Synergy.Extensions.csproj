@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <Authors>Arun Prakash</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Contains various Extensions and helpers.</Description>
