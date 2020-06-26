@@ -17,24 +17,45 @@ namespace Synergy.Extensions {
 	/// </summary>
 	public static class Helpers {
 		/// <summary>
-		/// File seperators in Unix are different to what windows uses.
-		/// <para>We will set a global file seperator for all functions which will use the paths in this project to prevent any issues occuring while parsing it. </para>
-		/// </summary>
-		private static readonly string FileSeperator = @"\";
-
-		/// <summary>
 		/// A Global static Random ensures that there will be least chances of repeated results.
 		/// <para>Can be overrided on the respective functions.</para>
 		/// </summary>
 		private static readonly Random Random;
 
-		/// <summary>
-		/// Assigns the <see cref="FileSeperator"/> value.
-		/// <para>Assigns a Random instance with a unique seed value to <see cref="Random"/> object.</para>
+		/// <summary>		
+		/// Assigns a Random instance with a unique seed value to <see cref="Random"/> object.
 		/// </summary>
-		static Helpers(){
-			FileSeperator = GetPlatform() == OSPlatform.Windows ? "//" : "\\";
-			Random = new Random(new Guid().ToString().GetHashCode());
+		static Helpers() => Random = new Random(new Guid().ToString().GetHashCode());
+
+		/// <summary>
+		/// Execute an Action<<see cref="T"/>>() for each element inside an HashSet<<see cref="T"/>>()
+		/// </summary>
+		/// <typeparam name="T">The type of the HashSet elements.</typeparam>
+		/// <param name="hashset">The HashSet</param>
+		/// <param name="onElementAction">The action to execute for each element in <see cref="hashset"/></param>
+		/// <param name="shouldNullCheck">Set as true if a null check should be done before executing the Action on the element.</param>
+		/// <returns>True if all iteration when successfully.</returns>
+		public static bool ForEachElement<T>(this HashSet<T> hashset, Action<T> onElementAction, bool shouldNullCheck = false) {
+			if (hashset == null || hashset.Count <= 0 || onElementAction == null) {
+				return false;
+			}
+
+			try {
+				lock (hashset) {
+					foreach (T value in hashset) {
+						if (shouldNullCheck && value == null) {
+							continue;
+						}
+
+						onElementAction.Invoke(value);
+					}
+				}
+
+				return true;
+			}
+			catch (Exception) {
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -46,7 +67,7 @@ namespace Synergy.Extensions {
 		/// <typeparam name="TKey">The Key Type of the <see cref="dictionary"/></typeparam>
 		/// <typeparam name="TValue">The Valu Type of the <see cref="dictionary"/></typeparam>
 		/// <returns>True if all iteration when successfully.</returns>
-		public static bool ForEachElement<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, Action<TKey, TValue> onElementAction, bool shouldNullCheck = true) {
+		public static bool ForEachElement<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, Action<TKey, TValue> onElementAction, bool shouldNullCheck = false) {
 			if (dictionary == null || dictionary.Count <= 0 || onElementAction == null) {
 				return false;
 			}
@@ -237,9 +258,9 @@ namespace Synergy.Extensions {
 		/// <param name="action">The action.</param>
 		/// <param name="delay">The delay until execution</param>
 		/// <returns>The underlying Timer instance used for current schedule.</returns>
-		public static Timer? ScheduleTask(Action action, TimeSpan delay) {
+		public static void ScheduleTask(Action action, TimeSpan delay) {
 			if (action == null) {
-				return null;
+				return;
 			}
 
 			Timer? TaskSchedulerTimer = null;
@@ -248,8 +269,6 @@ namespace Synergy.Extensions {
 				InBackgroundThread(action, $"Task Scheduler_{action.GetHashCode()}");
 				TaskSchedulerTimer?.Dispose();
 			}, null, delay, delay);
-
-			return TaskSchedulerTimer;
 		}
 
 		/// <summary>
@@ -276,7 +295,7 @@ namespace Synergy.Extensions {
 			}
 
 			const int timeout = 10000;
-			using (Ping ping = new Ping()){
+			using (Ping ping = new Ping()) {
 				PingReply _reply = ping.Send(_ip, timeout);
 				return _reply.Status == IPStatus.Success;
 			}
@@ -287,13 +306,13 @@ namespace Synergy.Extensions {
 		/// </summary>
 		/// <param name="_ip">The IPAddress of the destination server.</param>
 		/// <returns></returns>
-		public static async Task<bool> IsServerOnlineAsync(IPAddress _ip){
-			if(_ip == null){
+		public static async Task<bool> IsServerOnlineAsync(IPAddress _ip) {
+			if (_ip == null) {
 				return false;
 			}
 
 			const int timeout = 10000;
-			using (Ping ping = new Ping()){
+			using (Ping ping = new Ping()) {
 				PingReply _reply = await ping.SendPingAsync(_ip, timeout).ConfigureAwait(false);
 				return _reply.Status == IPStatus.Success;
 			}
@@ -357,7 +376,7 @@ namespace Synergy.Extensions {
 			Task<ConsoleKeyInfo> consoleKeyTask = Task.Factory.StartNew(() => Console.ReadKey(true));
 			int exeCount = Task.WaitAny(new Task[]{
 				consoleKeyTask
-			}, delay );
+			}, delay);
 
 			return exeCount == 0 ? consoleKeyTask.Result : default;
 		}
@@ -366,8 +385,8 @@ namespace Synergy.Extensions {
 		/// Sets the current console title.
 		/// </summary>
 		/// <param name="title">The title text.</param>
-		public static void SetConsoleTitle(string title){
-			if(string.IsNullOrEmpty(title)){
+		public static void SetConsoleTitle(string title) {
+			if (string.IsNullOrEmpty(title)) {
 				return;
 			}
 
@@ -430,7 +449,7 @@ namespace Synergy.Extensions {
 		/// <summary>
 		/// Converts specified DateTime instance to 24 hour formate.
 		/// </summary>
-		/// <param name="source">The soruce DateTime Instance</param>
+		/// <param name="source">The source DateTime Instance</param>
 		/// <returns>The 12 hour formate DateTime Instance</returns>
 		public static DateTime To24Hours(this DateTime source) =>
 			DateTime.TryParse(source.ToString("yyyy MMMM d HH:mm:ss tt"), out DateTime result) ? result : DateTime.Now;
@@ -438,11 +457,11 @@ namespace Synergy.Extensions {
 		/// <summary>
 		/// Converts specified DateTime instance to 12 hour formate.
 		/// </summary>
-		/// <param name="source">The soruce DateTime Instance</param>
+		/// <param name="source">The source DateTime Instance</param>
 		/// <returns>The 24 hour formate DateTime Instance</returns>
 		public static DateTime To12Hours(this DateTime source) =>
 			DateTime.TryParse(source.ToString("dddd, dd MMMM yyyy"), out DateTime result) ? result : DateTime.Now;
-		
+
 		/// <summary>
 		/// Downloads the specified url request result as a string. if the string is not a url, fails and returns null.
 		/// </summary>
@@ -454,10 +473,10 @@ namespace Synergy.Extensions {
 			}
 
 			Uri requestUri;
-
-			try{
+			try {
 				requestUri = new Uri(url);
-			}catch{
+			}
+			catch {
 				return default;
 			}
 
@@ -568,7 +587,7 @@ namespace Synergy.Extensions {
 
 			Task.Factory.StartNew(action, CancellationToken.None, options, TaskScheduler.Default);
 		}
-		
+
 		/// <summary>
 		/// Schedules execution of a Function<T> in background.
 		/// </summary>
@@ -593,7 +612,7 @@ namespace Synergy.Extensions {
 		/// Execute all tasks in IEnumerable<Task<T>> as parallel in async way, and returns the result T when all of them completes.
 		/// </summary>
 		/// <param name="tasks">The collection of tasks to execute.</param>
-		/// <typeparam name="T">The return result.</typeparam>
+		/// <typeparam name="T">The type of task.</typeparam>
 		/// <returns></returns>
 		public static async Task<IList<T>?> InParallel<T>(IEnumerable<Task<T>> tasks) {
 			if (tasks == null) {
@@ -623,13 +642,12 @@ namespace Synergy.Extensions {
 		/// <param name="ipAddress">The ip address of the host destination to check with. Will use default (8.8.8.8) if not specified.</param>
 		/// <returns></returns>
 		public static bool IsNetworkAvailable(IPAddress? ipAddress = null) {
-            const int timeout = 1000;
-            using (Ping ping = new Ping())
-            {
-                IPAddress host = ipAddress ?? IPAddress.Parse("8.8.8.8");
-                PingReply pingReply = ping.Send(host, timeout);
-                return pingReply.Status == IPStatus.Success;
-            }
+			const int timeout = 1000;
+			using (Ping ping = new Ping()) {
+				IPAddress host = ipAddress ?? IPAddress.Parse("8.8.8.8");
+				PingReply pingReply = ping.Send(host, timeout);
+				return pingReply.Status == IPStatus.Success;
+			}
 		}
 
 		/// <summary>
@@ -642,7 +660,7 @@ namespace Synergy.Extensions {
 				return;
 			}
 
-			foreach(Process process in Process.GetProcessesByName(processName)){
+			foreach (Process process in Process.GetProcessesByName(processName)) {
 				process.Kill(killSubProcesses);
 				process.WaitForExit();
 				process.Dispose();

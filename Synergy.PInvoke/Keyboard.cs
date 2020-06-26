@@ -4,89 +4,49 @@ using static Synergy.PInvoke.Keyboard;
 
 namespace Synergy.PInvoke {
 	/// <summary>
-	/// The Key properties.
+	/// Contains various methods to manipulate keyboard inputs.
 	/// </summary>
-	public struct Key {
-		/// <summary>
-		/// The key as in a <see cref="char"/>, only if there is such a representation. else <see cref="char.MinValue"/> will be assigned.
-		/// <br><see cref="IsKeyCharAvailable"/> can be used to check if key char is available easily.</br>
-		/// </summary>
-		public readonly char KeyChar;
-
-		/// <summary>
-		/// The keyboard key scan code, as a 16-bit signed integer / <see cref="short"/> type.
-		/// </summary>
-		public readonly ScanCodeShort ScanCodeShort;
-
-		public readonly VirtualKeyShort VirtualKeyShort;
-
-		public readonly string KeyCodeString;
-
-		/// <summary>
-		/// Returns true only if <see cref="KeyChar"/> is valid.
-		/// </summary>
-		public bool IsKeyCharAvailable => KeyChar != char.MinValue;
-
-		/// <summary>
-		/// ctor
-		/// </summary>
-		/// <param name="_keyChar">The key value, as a <see cref="char"/></param>
-		/// <param name="_scanCodeShort">The keyboard key scan code value.</param>
-		/// <param name="_keyCodeString">The string representation of the key code.</param>
-		/// <param name="_virtualKeyShort">The virtual key code value.</param>
-		public Key(char _keyChar, ScanCodeShort _scanCodeShort, string _keyCodeString, VirtualKeyShort _virtualKeyShort) {
-			KeyChar = _keyChar;
-			ScanCodeShort = _scanCodeShort;
-			KeyCodeString = _keyCodeString;
-			VirtualKeyShort = _virtualKeyShort;
-		}
-	}
-
-	public struct KeyboardInput {
-
-	}
-
-	[Obsolete("WIP atm.")]
 	public class Keyboard {
 		[DllImport("user32.dll")]
 		private static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray), In] INPUT[] pInputs, int cbSize);
 
-		//TODO: Introduce a function to convert string, char by char to the specific keycodes.
+		/// <summary>
+		/// Sends a single character key stroke.
+		/// </summary>
+		/// <param name="key">The character.</param>
+		public static void SendKeyStroke(char key) {
+			INPUT[] inputs = new INPUT[1];
+			short scanCode = (short) key;
 
-		[Obsolete("Just as an example for later usage.")]
-		private void SendInputWithAPI() {
-			INPUT[] Inputs = new INPUT[4];
-			INPUT Input = new INPUT {
-				type = 1 // 1 = Keyboard Input
+			INPUT keyInput = new INPUT() {
+				type = 1,
+				U = new InputUnion() {
+					ki = new KEYBDINPUT() {
+						dwFlags = KEYEVENTF.UNICODE,
+						wScan = scanCode,
+						wVk = 0,
+						dwExtraInfo = UIntPtr.Zero
+					}
+				}
 			};
-			//Input.U.ki.wScan = ScanCodeShort.KEY_W;
-			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			//Inputs[0] = Input;
 
-			//Input.type = 1; // 1 = Keyboard Input
-			//Input.U.ki.wScan = ScanCodeShort.KEY_S;
-			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			//Inputs[1] = Input;
-
-			//Input.type = 1; // 1 = Keyboard Input
-			//Input.U.ki.wScan = ScanCodeShort.KEY_A;
-			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			//Inputs[2] = Input;
-
-			//Input.type = 1; // 1 = Keyboard Input
-			//Input.U.ki.wScan = ScanCodeShort.KEY_D;
-			//Input.U.ki.dwFlags = KEYEVENTF.SCANCODE;
-			//Inputs[3] = Input;
-
-			//SendInput(4, Inputs, INPUT.Size);
+			inputs[0] = keyInput;
+			SendInput((uint) inputs.Length, inputs, INPUT.Size);
 		}
 
-		private void test() {
-			INPUT[] inputs = new INPUT[10];
+		/// <summary>
+		/// Sends a string value as input.
+		/// </summary>
+		/// <param name="stringEntry">The string value.</param>
+		public static void SendKeyStrokes(string stringEntry) {
+			if (string.IsNullOrEmpty(stringEntry)) {
+				return;
+			}
 
-			string text = "abc";
-			for(int i = 0; i < text.Length; i++) {
-				short scanCode = (short) text[i];
+			INPUT[] inputs = new INPUT[stringEntry.Length + 1];
+
+			for (int i = 0; i < stringEntry.Length; i++) {
+				short scanCode = (short) stringEntry[i];
 				INPUT keyInput = new INPUT() {
 					type = 1,
 					U = new InputUnion() {
@@ -98,8 +58,11 @@ namespace Synergy.PInvoke {
 						}
 					}
 				};
+
 				inputs[0] = keyInput;
 			}
+
+			SendInput((uint) inputs.Length, inputs, INPUT.Size);
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
