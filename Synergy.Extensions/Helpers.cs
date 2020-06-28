@@ -18,7 +18,7 @@ namespace Synergy.Extensions {
 	public static class Helpers {
 		/// <summary>
 		/// A Global static Random ensures that there will be least chances of repeated results.
-		/// <para>Can be overrided on the respective functions.</para>
+		/// <para>Can be overridden on the respective functions.</para>
 		/// </summary>
 		private static readonly Random Random;
 
@@ -26,6 +26,23 @@ namespace Synergy.Extensions {
 		/// Assigns a Random instance with a unique seed value to <see cref="Random"/> object.
 		/// </summary>
 		static Helpers() => Random = new Random(new Guid().ToString().GetHashCode());
+
+		/// <summary>
+		/// Waits until the semaphore can be freed, and disposes it.
+		/// </summary>
+		/// <param name="semaphore">the reference to the semaphore.</param>
+		public static void WaitAndDispose(ref SemaphoreSlim semaphore) {
+			if (semaphore == null) {
+				return;
+			}
+
+			if (semaphore.CurrentCount == 0) {
+				semaphore.Wait();
+			}
+
+			semaphore.Release();
+			semaphore.Dispose();
+		}
 
 		/// <summary>
 		/// Execute an Action<<see cref="T"/>>() for each element inside an HashSet<<see cref="T"/>>()
@@ -65,7 +82,7 @@ namespace Synergy.Extensions {
 		/// <param name="onElementAction">The action to execute for each element in <see cref="dictionary"/></param>
 		/// <param name="shouldNullCheck">Set as true if a null check should be done before executing the Action on the element.</param>
 		/// <typeparam name="TKey">The Key Type of the <see cref="dictionary"/></typeparam>
-		/// <typeparam name="TValue">The Valu Type of the <see cref="dictionary"/></typeparam>
+		/// <typeparam name="TValue">The Value Type of the <see cref="dictionary"/></typeparam>
 		/// <returns>True if all iteration when successfully.</returns>
 		public static bool ForEachElement<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, Action<TKey, TValue> onElementAction, bool shouldNullCheck = false) {
 			if (dictionary == null || dictionary.Count <= 0 || onElementAction == null) {
@@ -158,7 +175,7 @@ namespace Synergy.Extensions {
 		}
 
 		/// <summary>
-		/// Blocks the calling thread until the referred CancellationToken is cancelled.
+		/// Blocks the calling thread until the referred CancellationToken is canceled.
 		/// </summary>
 		/// <param name="_token">The Cancellation Token</param>
 		/// <param name="interval">The interval between each blocking loop</param>
@@ -173,7 +190,7 @@ namespace Synergy.Extensions {
 		/// Tries to parse the given string value as boolean.
 		/// </summary>
 		/// <param name="value">The string to parse</param>
-		/// <param name="booleanValue">Boolean value if parsing succeded, else null.</param>
+		/// <param name="booleanValue">Boolean value if parsing succeeded, else null.</param>
 		/// <returns>If the parsing is success or not.</returns>
 		public static bool TryParseAsBool(this string value, out bool? booleanValue) {
 			if (string.IsNullOrEmpty(value)) {
@@ -355,7 +372,7 @@ namespace Synergy.Extensions {
 		}
 
 		/// <summary>
-		/// Gets the current pc's LAN address.
+		/// Gets the current computers in LAN address.
 		/// </summary>
 		/// <returns>The LAN IPAddress</returns>
 		public static IPAddress? GetLocalIpAddress() {
@@ -367,7 +384,7 @@ namespace Synergy.Extensions {
 		}
 
 		/// <summary>
-		/// Gets a single charecter input from the user with a timespan delay. if the user fails to input before the delay, default value is returned.
+		/// Gets a single character input from the user with a timespan delay. if the user fails to input before the delay, default value is returned.
 		/// </summary>
 		/// <param name="delay">The delay to wait.</param>
 		/// <returns>The pressed key else null if nothing pressed.</returns>
@@ -400,13 +417,13 @@ namespace Synergy.Extensions {
 		public static void AsConsoleTitle(this string title) => SetConsoleTitle(title);
 
 		/// <summary>
-		/// Converts unix time stamp to DateTime instance.
+		/// Converts UNIX time stamp to DateTime instance.
 		/// </summary>
 		/// <returns>The DateTime instance</returns>
 		public static DateTime UnixTimeStampToDateTime(double unixTimeStamp) => new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTimeStamp).ToLocalTime();
 
 		/// <summary>
-		/// Converts the timestamp to DateTime instance.
+		/// Converts the time stamp to DateTime instance.
 		/// </summary>
 		/// <returns>The DateTime instance</returns>
 		public static DateTime ToDateTime(this double timestamp) => UnixTimeStampToDateTime(timestamp);
@@ -463,9 +480,9 @@ namespace Synergy.Extensions {
 			DateTime.TryParse(source.ToString("dddd, dd MMMM yyyy"), out DateTime result) ? result : DateTime.Now;
 
 		/// <summary>
-		/// Downloads the specified url request result as a string. if the string is not a url, fails and returns null.
+		/// Downloads the specified URL request result as a string. if the string is not a URL, fails and returns null.
 		/// </summary>
-		/// <param name="url">The url</param>
+		/// <param name="url">The URL</param>
 		/// <returns>The string result</returns>
 		public static async Task<string?> RequestAsString(this string url) {
 			if (string.IsNullOrEmpty(url)) {
@@ -500,7 +517,7 @@ namespace Synergy.Extensions {
 		/// <summary>
 		/// Reads a string from the standard input (Console) and masks the entered value. Useful for passwords.
 		/// </summary>
-		/// <param name="mask">The mask charecter to use.</param>
+		/// <param name="mask">The mask character to use.</param>
 		/// <returns>The received string. (Without any masking)</returns>
 		public static string ReadLineMasked(char mask = '*') {
 			StringBuilder result = new StringBuilder();
