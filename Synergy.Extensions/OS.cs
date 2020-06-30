@@ -1,9 +1,40 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Text;
 
 namespace Synergy.Extensions {
-	// Credits to this section goes to JustArchiNET -> ArchiSteamFarm
+	[ComImport]
+	[Guid("00021401-0000-0000-C000-000000000046")]
+	internal class ShellLink {
+	}
+
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("000214F9-0000-0000-C000-000000000046")]
+	internal interface IShellLink {
+		void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszFile, int cchMaxPath, out IntPtr pfd, int fFlags);
+		void GetIDList(out IntPtr ppidl);
+		void SetIDList(IntPtr pidl);
+		void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszName, int cchMaxName);
+		void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+		void GetWorkingDirectory([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszDir, int cchMaxPath);
+		void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string pszDir);
+		void GetArguments([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszArgs, int cchMaxPath);
+		void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string pszArgs);
+		void GetHotkey(out short pwHotkey);
+		void SetHotkey(short wHotkey);
+		void GetShowCmd(out int piShowCmd);
+		void SetShowCmd(int iShowCmd);
+		void GetIconLocation([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszIconPath, int cchIconPath, out int piIcon);
+		void SetIconLocation([MarshalAs(UnmanagedType.LPWStr)] string pszIconPath, int iIcon);
+		void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string pszPathRel, int dwReserved);
+		void Resolve(IntPtr hwnd, int fFlags);
+		void SetPath([MarshalAs(UnmanagedType.LPWStr)] string pszFile);
+	}
+
+	// Credits to for some of this section goes to JustArchi -> ArchiSteamFarm
 	public static class OS {
 		public static bool IsUnix => RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
@@ -26,6 +57,19 @@ namespace Synergy.Extensions {
 			if (NativeMethods.Chmod(path, (int) NativeMethods.UnixExecutePermission) != 0) {
 				return;
 			}
+		}
+
+		public static bool AutostartOnSystemStartup(string exePath, string exeDescription, string shortcutName) {
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || string.IsNullOrEmpty(exePath) || string.IsNullOrEmpty(exeDescription)) {
+				return false;
+			}
+
+			IShellLink shellLink = (IShellLink) new ShellLink();
+			shellLink.SetDescription(exeDescription);
+			shellLink.SetPath(exePath);
+			IPersistFile pFile = (IPersistFile) shellLink;
+			pFile.Save(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), shortcutName + ".lnk"), false);
+			return true;
 		}
 
 		private static void DisableQuickEditMode() {

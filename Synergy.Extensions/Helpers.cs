@@ -169,7 +169,7 @@ namespace Synergy.Extensions {
 		/// <param name="condition">The state checking condition</param>
 		/// <param name="interval">The interval between each blocking loop</param>
 		public static void WaitWhile(Func<bool> condition, int interval = 25) {
-			while (!condition()) {
+			while (!condition.Invoke()) {
 				Task.Delay(interval).Wait();
 			}
 		}

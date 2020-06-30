@@ -14,7 +14,7 @@ namespace Synergy.Requests {
 	/// <summary>
 	/// The main <see cref="SynRequester" /> class.
 	/// <para>Helpers to send requests and get their response, in multiple ways, with inbuilt request delays and retry mechanism</para>
-	/// <para>Inherits <see cref="IDisposable" />, all methods can be warpped inside using() blocks</para>
+	/// <para>Inherits <see cref="IDisposable" />, all methods can be wrapped inside using() blocks</para>
 	/// </summary>
 	public sealed class SynRequester : IDisposable {
 		/// <summary>
@@ -30,14 +30,14 @@ namespace Synergy.Requests {
 		private static readonly Random Random = new Random();
 
 		/// <summary>
-		/// A static semaphore ensures that the requesting process is in sync accross all the instances of <see cref="SynRequster" />.
+		/// A static semaphore ensures that the requesting process is in sync across all the instances of <see cref="SynRequster" />.
 		/// <para>By this way, it makes it easier to implement timeouts between multiple requests and such.</para>
 		/// </summary>
 		/// <returns></returns>
 		private static readonly SemaphoreSlim Sync = new SemaphoreSlim(1, 1);
 
 		/// <summary>
-		/// The generated unique identifier for this particuler <see cref="SynRequester" /> instance.
+		/// The generated unique identifier for this particular <see cref="SynRequester" /> instance.
 		/// </summary>
 		private readonly string InstanceID;
 
@@ -200,7 +200,7 @@ namespace Synergy.Requests {
 		}
 
 		/// <summary>
-		/// Send a generic HTTP request to the specified url with the specified method and headers.
+		/// Send a generic HTTP request to the specified URL with the specified method and headers.
 		/// </summary>
 		/// <param name="method">the <see cref="HttpMethod"/> to use for the request.</param>
 		/// <param name="requestUrl">The URL the send the request to.</param>
@@ -260,7 +260,7 @@ namespace Synergy.Requests {
 		}
 
 		/// <summary>
-		/// Send a generic, unparsed, JSON serializable object as an HTTP request to the specified url with the specified method and headers.
+		/// Send a generic, unparsed, JSON serializable object as an HTTP request to the specified URL with the specified method and headers.
 		/// </summary>
 		/// <param name="requestJsonContent">the JSON serializable object of the request.</param>
 		/// <param name="method">the <see cref="HttpMethod"/> to use for the request.</param>
@@ -269,7 +269,7 @@ namespace Synergy.Requests {
 		/// <param name="maxTries">The maximum number of tries before the request is considered as a fail.</param>
 		/// <typeparam name="TRequestType">the type of request object.</typeparam>
 		/// <typeparam name="UResponseType">the type of response object.</typeparam>
-		/// <returns>the result, Deserialized as <see cref="UResponseType"/> type.</returns>
+		/// <returns>the result, deserialized as <see cref="UResponseType"/> type.</returns>
 		public async Task<UResponseType> InternalRequestAsObject<TRequestType, UResponseType>(
 			TRequestType requestJsonContent, HttpMethod method, string requestUrl, Dictionary<string, string> data, int maxTries = MAX_TRIES) {
 			if (string.IsNullOrEmpty(requestUrl) || requestJsonContent == null) {
@@ -324,7 +324,7 @@ namespace Synergy.Requests {
 		}
 
 		/// <summary>
-		/// Send a generic, unparsed, JSON serializable object as an HTTP request to the specified url with the specified method and headers and get the response and the request objects in a struct.
+		/// Send a generic, unparsed, JSON serializable object as an HTTP request to the specified URL with the specified method and headers and get the response and the request objects in a struct.
 		/// </summary>
 		/// <param name="method">the <see cref="HttpMethod"/> to use for the request.</param>
 		/// <param name="requestUrl">The URL the send the request to.</param>
