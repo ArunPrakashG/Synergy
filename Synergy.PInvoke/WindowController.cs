@@ -81,7 +81,7 @@ namespace Synergy.PInvoke {
 				return false;
 			}
 
-			IntPtr hWnd = FindWindow(windowName, null);
+			IntPtr hWnd = FindWindow(null, windowName);
 
 			if (hWnd == IntPtr.Zero) {
 				return false;
@@ -132,7 +132,7 @@ namespace Synergy.PInvoke {
 				return false;
 			}
 
-			IntPtr hWnd = FindWindow(windowName, null);
+			IntPtr hWnd = FindWindow(null, windowName);
 
 			if (hWnd == IntPtr.Zero) {
 				return false;
